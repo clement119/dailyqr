@@ -176,9 +176,8 @@
             const timeZone = "Asia/Kuala_Lumpur";
             const now = new Date();
             
-            // --- Logic 1: Date for Filename (Strict dd.mm.yyyy) ---
+            // --- Logic 1: Date for Filename (Strict ddmmyyyy) ---
             // We use a dedicated formatter for the filename to ensure 2-digit padding
-            // without conflicting with the 'long' month name needed for display.
             const filenameFormatter = new Intl.DateTimeFormat('en-GB', {
                 timeZone: timeZone,
                 day: '2-digit',
@@ -192,8 +191,8 @@
                 return acc;
             }, {});
 
-            // Construct filename: 10.01.2026.jpg
-            const filename = `${fileParts.day}.${fileParts.month}.${fileParts.year}.${config.fileExtension}`;
+            // Construct filename: 10012026.jpg (No dots)
+            const filename = `${fileParts.day}${fileParts.month}${fileParts.year}.${config.fileExtension}`;
 
             
             // --- Logic 2: Date for Display (Readable text) ---
