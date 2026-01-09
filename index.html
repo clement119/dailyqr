@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily QR Code</title>
+    <style>
+        /* * 1. Visual Design (UI/UX)
+         * Base styles and Glassmorphism implementation 
+         */
+        :root {
+            --bg-gradient-start: #E0F2F1;
+            --bg-gradient-mid: #B2DFDB;
+            --bg-gradient-end: #FFFFFF;
+            --text-primary: #1F2937;
+            --text-secondary: #6B7280;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --shadow-color: rgba(0, 0, 0, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Aurora Gradient Background */
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
+            background-attachment: fixed; /* Ensures gradient fills screen on mobile scroll */
+            padding: 20px;
+        }
+
+        /* Glassmorphism Card */
+        .card {
+            background: var(--card-bg);
+            /* The 'Glass' effect */
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            
+            border-radius: 32px;
+            box-shadow: 0 10px 40px var(--shadow-color);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            
+            /* Float animation entry */
+            animation: floatIn 0.8s ease-out forwards;
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        @keyframes floatIn {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Typography */
+        #date-display {
+            color: var(--text-secondary);
+            font-size: 0.875rem; /* 14px */
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        #greeting {
+            color: var(--text-primary);
+            font-size: 1.75rem; /* 28px */
+            font-weight: 700;
+            margin-bottom: 32px;
+            line-height: 1.2;
+        }
+
+        /* QR Image Container */
+        .image-container {
+            position: relative;
+            width: 100%;
+            /* Aspect ratio placeholder to prevent layout shift */
+            min-height: 250px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.5);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        #daily-qr {
+            width: 100%;
+            height: auto;
+            max-width: 280px;
+            border-radius: 16px;
+            display: block;
+            margin: 0 auto;
+            transition: transform 0.3s ease;
+        }
+
+        #daily-qr:hover {
+            transform: scale(1.02);
+        }
+
+        /* Fallback / Error State */
+        .error-state {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .error-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .error-text {
+            font-size: 0.9rem;
+        }
+
+        /* Utility: Hide image when error shows */
+        .has-error #daily-qr {
+            display: none;
+        }
+        .has-error .error-state {
+            display: flex;
+        }
+
+    </style>
+</head>
+<body>
+
+    <main class="card">
+        <!-- Date Display -->
+        <div id="date-display">Loading date...</div>
+        
+        <!-- Dynamic Greeting -->
+        <h1 id="greeting">Welcome</h1>
+
+        <!-- Image Container -->
+        <div class="image-container" id="qr-container">
+            <img id="daily-qr" alt="Today's QR Code" src="" />
+            
+            <!-- Fallback UI -->
+            <div class="error-state">
+                <div class="error-icon">❖</div>
+                <div class="error-text">No QR Code found for today.</div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 4. Configuration: Replace these placeholders
+        const config = {
+            username: 'clement119',
+            repo: 'dailyqr',
+            folder: '' // e.g., "qrcodes" or leave empty "" if in root
+        };
+
+        function initApp() {
+            // 2. Functional Requirements A: Timezone & Greeting Logic
+            // Force Malaysia Timezone
+            const timeZone = "Asia/Kuala_Lumpur";
+            
+            // Get current time object for Malaysia
+            // We use 'en-GB' because it formats as dd/mm/yyyy which is close to what we need
+            const now = new Date();
+            const options = { timeZone: timeZone };
+            
+            // 1. Get formatting parts to reconstruct date precisely
+            const formatter = new Intl.DateTimeFormat('en-GB', {
+                ...options,
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: 'numeric',
+                hour12: false, // 24-hour format for easier logic
+                weekday: 'long',
+                month: 'long'
+            });
+
+            // Extract parts into a key-value map
+            const parts = formatter.formatToParts(now).reduce((acc, part) => {
+                acc[part.type] = part.value;
+                return acc;
+            }, {});
+
+            // --- UI Update: Date ---
+            // Display format: "Saturday, 10 January 2026"
+            const displayDate = `${parts.weekday}, ${parts.day} ${parts.month} ${parts.year}`;
+            document.getElementById('date-display').textContent = displayDate;
+
+            // --- UI Update: Greeting ---
+            const currentHour = parseInt(parts.hour, 10);
+            let greetingText = "Good Evening"; // Default fallback
+
+            if (currentHour >= 5 && currentHour < 12) {
+                greetingText = "Good Morning";
+            } else if (currentHour >= 12 && currentHour < 18) {
+                greetingText = "Good Afternoon";
+            } else {
+                // 18:00 (6 PM) to 04:59 (5 AM)
+                greetingText = "Good Evening";
+            }
+            document.getElementById('greeting').textContent = greetingText;
+
+            // 2. Functional Requirements B: Dynamic Image Loading
+            
+            // Construct filename: dd.mm.yyyy.png
+            // parts.day and parts.month are already 2-digit padded by Intl.DateTimeFormat
+            const filename = `${parts.day}.${parts.month}.${parts.year}.png`;
+            
+            // Handle folder path logic (add slash if folder is defined)
+            const folderPath = config.folder ? `${config.folder}/` : '';
+            
+            // Construct Source URL
+            const imageUrl = `https://raw.githubusercontent.com/${config.username}/${config.repo}/main/${folderPath}${filename}`;
+
+            const imgElement = document.getElementById('daily-qr');
+            const container = document.getElementById('qr-container');
+
+            // Set source
+            imgElement.src = imageUrl;
+
+            // Error Handling: If image fails to load (404)
+            imgElement.onerror = function() {
+                container.classList.add('has-error');
+                console.log(`Failed to load QR code: ${filename}`);
+            };
+
+            // Success Handling: Fade in image
+            imgElement.onload = function() {
+                container.classList.remove('has-error');
+            };
+        }
+
+        // Run when DOM is ready
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
