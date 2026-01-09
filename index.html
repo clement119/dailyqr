@@ -108,6 +108,7 @@
             cursor: pointer;
             transition: background 0.2s;
             position: relative; /* Essential for overlay input */
+            user-select: none;
         }
         
         #date-display-container:hover {
@@ -125,7 +126,9 @@
         .calendar-icon {
             width: 16px;
             height: 16px;
-            opacity: 0.5;
+            opacity: 0.6;
+            flex-shrink: 0; /* Prevents squashing */
+            display: block;
         }
 
         /* Date Input - Overlay Method (Fixes clickable bug) */
@@ -137,11 +140,13 @@
             height: 100%;
             opacity: 0;
             cursor: pointer;
-            z-index: 10;
+            z-index: 20; /* High Z-index to ensure clickability */
+            appearance: none;
+            -webkit-appearance: none;
         }
 
         .header-group {
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         #greeting {
@@ -158,6 +163,15 @@
             font-weight: 400;
         }
 
+        /* New Headers */
+        .qr-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            opacity: 0.9;
+        }
+
         /* QR Image Container */
         .image-wrapper {
             background: #fff;
@@ -168,6 +182,7 @@
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
             cursor: zoom-in;
             position: relative;
+            margin-bottom: 24px; /* Space for the bottom link */
         }
 
         .image-wrapper:hover {
@@ -191,6 +206,25 @@
             height: auto;
             border-radius: 12px;
             display: block;
+        }
+
+        /* House Guide Link */
+        .guide-link {
+            display: inline-block;
+            font-size: 0.9rem;
+            color: var(--primary-accent);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(0, 122, 255, 0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .guide-link:hover {
+            background: rgba(0, 122, 255, 0.2);
+            transform: translateY(-1px);
         }
 
         /* Fallback / Error State */
@@ -242,6 +276,74 @@
             transform: scale(1);
         }
 
+        /* Guide Modal (For PDF) */
+        .guide-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 200; /* Higher than lightbox */
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .guide-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .guide-content {
+            width: 90%;
+            height: 90%;
+            background: #fff;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .guide-content iframe {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .close-guide {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.1);
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            transition: background 0.2s;
+        }
+        .close-guide:hover {
+            background: rgba(0,0,0,0.2);
+        }
+        
         .close-lightbox {
             position: absolute;
             top: 30px;
@@ -269,8 +371,8 @@
             <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">中文 / EN</button>
         </div>
 
-        <!-- Date Picker (Hidden Overlay) -->
-        <div id="date-display-container" title="Click to change date">
+        <!-- Date Picker (Hidden Overlay + JS Trigger Backup) -->
+        <div id="date-display-container" title="Click to change date" onclick="try{document.getElementById('date-picker').showPicker()}catch(e){}">
             <svg class="calendar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             <span id="date-display">Loading...</span>
             <input type="date" id="date-picker">
@@ -281,6 +383,9 @@
             <h1 id="greeting">Welcome</h1>
             <p id="sub-header">We hope you have a pleasant stay.</p>
         </div>
+
+        <!-- QR Header -->
+        <h2 class="qr-section-title" id="qr-title">QR Code</h2>
 
         <!-- Image -->
         <div class="image-wrapper" id="qr-container" onclick="openLightbox()">
@@ -293,12 +398,25 @@
             
             <div class="click-hint" id="click-hint">Tap to zoom</div>
         </div>
+
+        <!-- House Guide Link -->
+        <div>
+            <a href="#" id="house-guide-link" class="guide-link" onclick="openGuide(event)">Click here for House Guide</a>
+        </div>
     </main>
 
-    <!-- Lightbox Modal -->
+    <!-- Lightbox Modal (For Image) -->
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
         <button class="close-lightbox">&times;</button>
         <img id="lightbox-img" src="" alt="Zoomed QR">
+    </div>
+
+    <!-- Guide Modal (For PDF) -->
+    <div class="guide-modal" id="guide-modal">
+        <div class="guide-content">
+            <button class="close-guide" onclick="closeGuide()">&times;</button>
+            <iframe id="guide-frame" src=""></iframe>
+        </div>
     </div>
 
     <script>
@@ -307,7 +425,8 @@
             username: 'clement119',
             repo: 'dailyqr',
             folder: '', 
-            fileExtension: 'jpg' 
+            fileExtension: 'jpg',
+            pdfName: 'scot-guide-CN.pdf'
         };
 
         // --- State Management ---
@@ -323,21 +442,24 @@
                 afternoon: "Good Afternoon, welcome to Mont Kiara Pines",
                 evening: "Good Evening, welcome to Mont Kiara Pines",
                 subHeader: "We hope you have a pleasant stay.",
-                clickHint: "Tap to zoom"
+                clickHint: "Tap to zoom",
+                qrTitle: "QR Code",
+                guideLink: "Click here for House Guide"
             },
             zh: {
                 morning: "早上好，欢迎来到 Mont Kiara Pines",
                 afternoon: "下午好，欢迎来到 Mont Kiara Pines",
                 evening: "晚上好，欢迎来到 Mont Kiara Pines",
                 subHeader: "希望您拥有愉快的住宿体验。",
-                clickHint: "点击放大"
+                clickHint: "点击放大",
+                qrTitle: "二维码",
+                guideLink: "点击此处查看入住指南"
             }
         };
 
         // --- Initialization ---
         function initApp() {
             // 1. Set Date to Malaysia Timezone on Load
-            // We create a date string from the format to ensure we capture MYT
             const timeZone = "Asia/Kuala_Lumpur";
             const now = new Date();
             const mytString = now.toLocaleString("en-US", { timeZone: timeZone });
@@ -366,11 +488,6 @@
 
         // --- Logic: Date Text ---
         function updateDateText() {
-            // Format: "Saturday, 10 January 2026"
-            // If Chinese, we might want a different format, but standardizing on English date 
-            // is often cleaner for UI unless full localization is required.
-            // Let's stick to English date for design consistency, or locale based.
-            
             const locale = state.lang === 'zh' ? 'zh-CN' : 'en-GB';
             const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
             
@@ -378,7 +495,7 @@
             document.getElementById('date-display').textContent = displayDate;
         }
 
-        // --- Logic: Greetings ---
+        // --- Logic: Greetings & Text ---
         function updateGreeting() {
             const currentHour = state.date.getHours();
             const t = translations[state.lang];
@@ -395,14 +512,15 @@
             document.getElementById('greeting').textContent = text;
             document.getElementById('sub-header').textContent = t.subHeader;
             document.getElementById('click-hint').textContent = t.clickHint;
+            document.getElementById('qr-title').textContent = t.qrTitle;
+            document.getElementById('house-guide-link').textContent = t.guideLink;
         }
 
         // --- Logic: Image Loading ---
         function updateImage() {
-            // Format filename: ddmmyyyy.jpg (10012026.jpg)
             const d = state.date;
             const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-index
+            const month = String(d.getMonth() + 1).padStart(2, '0');
             const year = d.getFullYear();
             
             const filename = `${day}${month}${year}.${config.fileExtension}`;
@@ -420,14 +538,35 @@
 
             // Set Source
             imgElement.src = imageUrl;
-            
-            // Also update lightbox source immediately
             document.getElementById('lightbox-img').src = imageUrl;
 
             imgElement.onerror = function() {
                 container.classList.add('has-error');
                 console.log(`Failed to load: ${filename}`);
             };
+        }
+
+        // --- Logic: Open PDF Guide (Modal) ---
+        function openGuide(event) {
+            if(event) event.preventDefault();
+            
+            // Raw URL for the PDF
+            const rawPdfUrl = `https://raw.githubusercontent.com/${config.username}/${config.repo}/main/${config.pdfName}`;
+            
+            // Google Docs Viewer URL (allows displaying PDF in iframe without download)
+            const viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(rawPdfUrl)}&embedded=true`;
+            
+            // Set iframe src and show modal
+            document.getElementById('guide-frame').src = viewerUrl;
+            document.getElementById('guide-modal').classList.add('active');
+        }
+
+        function closeGuide() {
+            document.getElementById('guide-modal').classList.remove('active');
+            // Clear source to stop processing/loading when closed
+            setTimeout(() => {
+                document.getElementById('guide-frame').src = "";
+            }, 300);
         }
 
         // --- Interaction: Language Toggle ---
@@ -438,7 +577,6 @@
 
         // --- Interaction: Lightbox ---
         function openLightbox() {
-            // Don't open if error
             if(document.getElementById('qr-container').classList.contains('has-error')) return;
             document.getElementById('lightbox').classList.add('active');
         }
@@ -450,10 +588,11 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', initApp);
 
-        // Close lightbox on escape key
+        // Close modals on escape key
         document.addEventListener('keydown', function(event) {
             if (event.key === "Escape") {
                 closeLightbox();
+                closeGuide();
             }
         });
     </script>
