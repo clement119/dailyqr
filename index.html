@@ -167,45 +167,57 @@
             username: 'clement119',
             repo: 'dailyqr',
             folder: '', // Left empty since file is in root (main branch)
-            fileExtension: 'jpg' // Changed from png to jpg
+            fileExtension: 'jpg' 
         };
 
         function initApp() {
             // 2. Functional Requirements A: Timezone & Greeting Logic
             // Force Malaysia Timezone
             const timeZone = "Asia/Kuala_Lumpur";
-            
-            // Get current time object for Malaysia
-            // We use 'en-GB' because it formats as dd/mm/yyyy which is close to what we need
             const now = new Date();
-            const options = { timeZone: timeZone };
             
-            // 1. Get formatting parts to reconstruct date precisely
-            const formatter = new Intl.DateTimeFormat('en-GB', {
-                ...options,
+            // --- Logic 1: Date for Filename (Strict dd.mm.yyyy) ---
+            // We use a dedicated formatter for the filename to ensure 2-digit padding
+            // without conflicting with the 'long' month name needed for display.
+            const filenameFormatter = new Intl.DateTimeFormat('en-GB', {
+                timeZone: timeZone,
                 day: '2-digit',
                 month: '2-digit',
-                year: 'numeric',
-                hour: 'numeric',
-                hour12: false, // 24-hour format for easier logic
-                weekday: 'long',
-                month: 'long'
+                year: 'numeric'
             });
 
-            // Extract parts into a key-value map
-            const parts = formatter.formatToParts(now).reduce((acc, part) => {
+            // Extract parts (e.g., day="10", month="01", year="2026")
+            const fileParts = filenameFormatter.formatToParts(now).reduce((acc, part) => {
                 acc[part.type] = part.value;
                 return acc;
             }, {});
 
-            // --- UI Update: Date ---
+            // Construct filename: 10.01.2026.jpg
+            const filename = `${fileParts.day}.${fileParts.month}.${fileParts.year}.${config.fileExtension}`;
+
+            
+            // --- Logic 2: Date for Display (Readable text) ---
             // Display format: "Saturday, 10 January 2026"
-            const displayDate = `${parts.weekday}, ${parts.day} ${parts.month} ${parts.year}`;
+            const displayFormatter = new Intl.DateTimeFormat('en-GB', {
+                timeZone: timeZone,
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            const displayDate = displayFormatter.format(now);
             document.getElementById('date-display').textContent = displayDate;
 
-            // --- UI Update: Greeting ---
-            const currentHour = parseInt(parts.hour, 10);
-            let greetingText = "Good Evening"; // Default fallback
+
+            // --- Logic 3: Greeting (Based on Hour) ---
+            const hourFormatter = new Intl.DateTimeFormat('en-GB', {
+                timeZone: timeZone,
+                hour: 'numeric',
+                hour12: false
+            });
+            const currentHour = parseInt(hourFormatter.format(now), 10);
+            
+            let greetingText = "Good Evening"; 
 
             if (currentHour >= 5 && currentHour < 12) {
                 greetingText = "Good Morning";
@@ -217,11 +229,8 @@
             }
             document.getElementById('greeting').textContent = greetingText;
 
-            // 2. Functional Requirements B: Dynamic Image Loading
-            
-            // Construct filename: dd.mm.yyyy.jpg
-            // parts.day and parts.month are already 2-digit padded by Intl.DateTimeFormat
-            const filename = `${parts.day}.${parts.month}.${parts.year}.${config.fileExtension}`;
+
+            // --- Logic 4: Dynamic Image Loading ---
             
             // Handle folder path logic (add slash if folder is defined)
             const folderPath = config.folder ? `${config.folder}/` : '';
