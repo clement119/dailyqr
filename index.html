@@ -166,7 +166,8 @@
         const config = {
             username: 'clement119',
             repo: 'dailyqr',
-            folder: '' // e.g., "qrcodes" or leave empty "" if in root
+            folder: '', // Left empty since file is in root (main branch)
+            fileExtension: 'jpg' // Changed from png to jpg
         };
 
         function initApp() {
@@ -218,9 +219,9 @@
 
             // 2. Functional Requirements B: Dynamic Image Loading
             
-            // Construct filename: dd.mm.yyyy.png
+            // Construct filename: dd.mm.yyyy.jpg
             // parts.day and parts.month are already 2-digit padded by Intl.DateTimeFormat
-            const filename = `${parts.day}.${parts.month}.${parts.year}.png`;
+            const filename = `${parts.day}.${parts.month}.${parts.year}.${config.fileExtension}`;
             
             // Handle folder path logic (add slash if folder is defined)
             const folderPath = config.folder ? `${config.folder}/` : '';
