@@ -3,139 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily QR Code</title>
+    <title>Pines Mont Kiara - Daily QR</title>
+    <!-- Premium UI Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        /* * 1. Visual Design (UI/UX)
-         * Base styles and Glassmorphism implementation 
+        /* * 1. Visual Design (UI/UX) - Premium Apple-like Liquid Glass 
          */
         :root {
-            --bg-gradient-start: #E0F2F1;
-            --bg-gradient-mid: #B2DFDB;
-            --bg-gradient-end: #FFFFFF;
-            --text-primary: #1F2937;
-            --text-secondary: #6B7280;
-            --card-bg: rgba(255, 255, 255, 0.9);
-            --shadow-color: rgba(0, 0, 0, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --primary-accent: #007AFF; /* System Blue */
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --danger: #FF3B30;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            /* Aurora Gradient Background */
-            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
-            background-attachment: fixed; /* Ensures gradient fills screen on mobile scroll */
+            /* Abstract Modern Mesh Gradient */
+            background-color: #f0f2f5;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
             padding: 20px;
+            color: var(--text-primary);
         }
 
-        /* Glassmorphism Card */
+        /* The Liquid Glass Card */
         .card {
-            background: var(--card-bg);
-            /* The 'Glass' effect */
-            backdrop-filter: blur(12px); 
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            background: var(--glass-bg);
+            /* High blur + Saturation for "Liquid" feel */
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
             
-            border-radius: 32px;
-            box-shadow: 0 10px 40px var(--shadow-color);
-            padding: 40px;
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
+            padding: 40px 30px;
             text-align: center;
+            position: relative;
             
-            /* Float animation entry */
-            animation: floatIn 0.8s ease-out forwards;
-            transform: translateY(20px);
+            animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
+            transform: scale(0.95);
         }
 
-        @keyframes floatIn {
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        @keyframes popIn {
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Top Controls (Lang Toggle) */
+        .top-controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 10;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(0,0,0,0.05);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .lang-btn:hover {
+            background: #fff;
+            transform: scale(1.05);
         }
 
         /* Typography */
+        #date-display-container {
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.4);
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        #date-display-container:hover {
+            background: rgba(255,255,255,0.7);
+        }
+
         #date-display {
             color: var(--text-secondary);
-            font-size: 0.875rem; /* 14px */
-            font-weight: 500;
-            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+            font-weight: 600;
             text-transform: uppercase;
-            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+        
+        .calendar-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.5;
+        }
+
+        /* Hidden Date Input */
+        #date-picker {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .header-group {
+            margin-bottom: 32px;
         }
 
         #greeting {
-            color: var(--text-primary);
-            font-size: 1.75rem; /* 28px */
+            font-size: 1.5rem; /* 24px */
             font-weight: 700;
-            margin-bottom: 32px;
             line-height: 1.2;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        #sub-header {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 400;
         }
 
         /* QR Image Container */
-        .image-container {
-            position: relative;
-            width: 100%;
-            /* Aspect ratio placeholder to prevent layout shift */
-            min-height: 250px; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.5);
+        .image-wrapper {
+            background: #fff;
+            padding: 16px;
             border-radius: 20px;
-            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: zoom-in;
+            position: relative;
+        }
+
+        .image-wrapper:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .click-hint {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
         }
 
         #daily-qr {
             width: 100%;
+            max-width: 240px;
             height: auto;
-            max-width: 280px;
-            border-radius: 16px;
+            border-radius: 12px;
             display: block;
-            margin: 0 auto;
-            transition: transform 0.3s ease;
-        }
-
-        #daily-qr:hover {
-            transform: scale(1.02);
         }
 
         /* Fallback / Error State */
         .error-state {
-            display: none; /* Hidden by default */
+            display: none;
+            padding: 40px 20px;
+            color: var(--text-secondary);
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: var(--text-secondary);
         }
-
-        .error-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-            opacity: 0.5;
-        }
-
-        .error-text {
-            font-size: 0.9rem;
-        }
-
-        /* Utility: Hide image when error shows */
-        .has-error #daily-qr {
-            display: none;
-        }
-        .has-error .error-state {
+        
+        .image-wrapper.has-error #daily-qr { display: none; }
+        .image-wrapper.has-error .error-state { display: flex; }
+        .image-wrapper.has-error { cursor: default; transform: none; }
+        
+        /* Lightbox (Zoom View) */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 100;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        
+        .lightbox.active img {
+            transform: scale(1);
+        }
+
+        .close-lightbox {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(0,0,0,0.1);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--text-primary);
         }
 
     </style>
@@ -143,120 +259,198 @@
 <body>
 
     <main class="card">
-        <!-- Date Display -->
-        <div id="date-display">Loading date...</div>
-        
-        <!-- Dynamic Greeting -->
-        <h1 id="greeting">Welcome</h1>
+        <!-- Language Toggle -->
+        <div class="top-controls">
+            <button class="lang-btn" id="lang-toggle" onclick="toggleLanguage()">中文 / EN</button>
+        </div>
 
-        <!-- Image Container -->
-        <div class="image-container" id="qr-container">
-            <img id="daily-qr" alt="Today's QR Code" src="" />
+        <!-- Date Picker (Hidden Input + Custom UI) -->
+        <label for="date-picker" id="date-display-container" title="Click to change date">
+            <svg class="calendar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span id="date-display">Loading...</span>
+        </label>
+        <input type="date" id="date-picker">
+        
+        <!-- Headers -->
+        <div class="header-group">
+            <h1 id="greeting">Welcome</h1>
+            <p id="sub-header">We hope you have a pleasant stay.</p>
+        </div>
+
+        <!-- Image -->
+        <div class="image-wrapper" id="qr-container" onclick="openLightbox()">
+            <img id="daily-qr" alt="QR Code" src="" />
             
-            <!-- Fallback UI -->
             <div class="error-state">
-                <div class="error-icon">❖</div>
-                <div class="error-text">No QR Code found for today.</div>
+                <div style="font-size: 2rem; margin-bottom: 10px;">❖</div>
+                <div>No QR Code for this date.</div>
             </div>
+            
+            <div class="click-hint" id="click-hint">Tap to zoom</div>
         </div>
     </main>
 
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="close-lightbox">&times;</button>
+        <img id="lightbox-img" src="" alt="Zoomed QR">
+    </div>
+
     <script>
-        // 4. Configuration: Replace these placeholders
+        // --- Configuration ---
         const config = {
             username: 'clement119',
             repo: 'dailyqr',
-            folder: '', // Left empty since file is in root (main branch)
+            folder: '', 
             fileExtension: 'jpg' 
         };
 
+        // --- State Management ---
+        const state = {
+            date: new Date(), // Defaults to current system time initially
+            lang: 'en' // 'en' or 'zh'
+        };
+
+        // --- Translations ---
+        const translations = {
+            en: {
+                morning: "Good Morning, welcome to Mont Kiara Pines",
+                afternoon: "Good Afternoon, welcome to Mont Kiara Pines",
+                evening: "Good Evening, welcome to Mont Kiara Pines",
+                subHeader: "We hope you have a pleasant stay.",
+                clickHint: "Tap to zoom"
+            },
+            zh: {
+                morning: "早上好，欢迎来到 Mont Kiara Pines",
+                afternoon: "下午好，欢迎来到 Mont Kiara Pines",
+                evening: "晚上好，欢迎来到 Mont Kiara Pines",
+                subHeader: "希望您拥有愉快的住宿体验。",
+                clickHint: "点击放大"
+            }
+        };
+
+        // --- Initialization ---
         function initApp() {
-            // 2. Functional Requirements A: Timezone & Greeting Logic
-            // Force Malaysia Timezone
+            // 1. Set Date to Malaysia Timezone on Load
+            // We create a date string from the format to ensure we capture MYT
             const timeZone = "Asia/Kuala_Lumpur";
             const now = new Date();
+            const mytString = now.toLocaleString("en-US", { timeZone: timeZone });
+            state.date = new Date(mytString);
+
+            // 2. Setup Date Picker Limit/Value
+            const dateInput = document.getElementById('date-picker');
+            dateInput.valueAsDate = state.date;
             
-            // --- Logic 1: Date for Filename (Strict ddmmyyyy) ---
-            // We use a dedicated formatter for the filename to ensure 2-digit padding
-            const filenameFormatter = new Intl.DateTimeFormat('en-GB', {
-                timeZone: timeZone,
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
+            // Listener for Date Changes
+            dateInput.addEventListener('change', (e) => {
+                if(e.target.valueAsDate) {
+                    state.date = e.target.valueAsDate;
+                    updateUI();
+                }
             });
 
-            // Extract parts (e.g., day="10", month="01", year="2026")
-            const fileParts = filenameFormatter.formatToParts(now).reduce((acc, part) => {
-                acc[part.type] = part.value;
-                return acc;
-            }, {});
+            updateUI();
+        }
 
-            // Construct filename: 10012026.jpg (No dots)
-            const filename = `${fileParts.day}${fileParts.month}${fileParts.year}.${config.fileExtension}`;
+        function updateUI() {
+            updateDateText();
+            updateGreeting();
+            updateImage();
+        }
 
+        // --- Logic: Date Text ---
+        function updateDateText() {
+            // Format: "Saturday, 10 January 2026"
+            // If Chinese, we might want a different format, but standardizing on English date 
+            // is often cleaner for UI unless full localization is required.
+            // Let's stick to English date for design consistency, or locale based.
             
-            // --- Logic 2: Date for Display (Readable text) ---
-            // Display format: "Saturday, 10 January 2026"
-            const displayFormatter = new Intl.DateTimeFormat('en-GB', {
-                timeZone: timeZone,
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
-            const displayDate = displayFormatter.format(now);
+            const locale = state.lang === 'zh' ? 'zh-CN' : 'en-GB';
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            
+            const displayDate = new Intl.DateTimeFormat(locale, options).format(state.date);
             document.getElementById('date-display').textContent = displayDate;
+        }
 
-
-            // --- Logic 3: Greeting (Based on Hour) ---
-            const hourFormatter = new Intl.DateTimeFormat('en-GB', {
-                timeZone: timeZone,
-                hour: 'numeric',
-                hour12: false
-            });
-            const currentHour = parseInt(hourFormatter.format(now), 10);
-            
-            let greetingText = "Good Evening"; 
+        // --- Logic: Greetings ---
+        function updateGreeting() {
+            const currentHour = state.date.getHours();
+            const t = translations[state.lang];
+            let text = "";
 
             if (currentHour >= 5 && currentHour < 12) {
-                greetingText = "Good Morning";
+                text = t.morning;
             } else if (currentHour >= 12 && currentHour < 18) {
-                greetingText = "Good Afternoon";
+                text = t.afternoon;
             } else {
-                // 18:00 (6 PM) to 04:59 (5 AM)
-                greetingText = "Good Evening";
+                text = t.evening;
             }
-            document.getElementById('greeting').textContent = greetingText;
 
+            document.getElementById('greeting').textContent = text;
+            document.getElementById('sub-header').textContent = t.subHeader;
+            document.getElementById('click-hint').textContent = t.clickHint;
+        }
 
-            // --- Logic 4: Dynamic Image Loading ---
+        // --- Logic: Image Loading ---
+        function updateImage() {
+            // Format filename: ddmmyyyy.jpg (10012026.jpg)
+            const d = state.date;
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0'); // Months are 0-index
+            const year = d.getFullYear();
             
-            // Handle folder path logic (add slash if folder is defined)
+            const filename = `${day}${month}${year}.${config.fileExtension}`;
+            
+            // Build URL
             const folderPath = config.folder ? `${config.folder}/` : '';
-            
-            // Construct Source URL
             const imageUrl = `https://raw.githubusercontent.com/${config.username}/${config.repo}/main/${folderPath}${filename}`;
 
             const imgElement = document.getElementById('daily-qr');
             const container = document.getElementById('qr-container');
 
-            // Set source
-            imgElement.src = imageUrl;
+            // Reset Error State
+            container.classList.remove('has-error');
+            imgElement.style.display = 'block';
 
-            // Error Handling: If image fails to load (404)
+            // Set Source
+            imgElement.src = imageUrl;
+            
+            // Also update lightbox source immediately
+            document.getElementById('lightbox-img').src = imageUrl;
+
             imgElement.onerror = function() {
                 container.classList.add('has-error');
-                console.log(`Failed to load QR code: ${filename}`);
-            };
-
-            // Success Handling: Fade in image
-            imgElement.onload = function() {
-                container.classList.remove('has-error');
+                console.log(`Failed to load: ${filename}`);
             };
         }
 
-        // Run when DOM is ready
+        // --- Interaction: Language Toggle ---
+        function toggleLanguage() {
+            state.lang = state.lang === 'en' ? 'zh' : 'en';
+            updateUI();
+        }
+
+        // --- Interaction: Lightbox ---
+        function openLightbox() {
+            // Don't open if error
+            if(document.getElementById('qr-container').classList.contains('has-error')) return;
+            document.getElementById('lightbox').classList.add('active');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', initApp);
+
+        // Close lightbox on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeLightbox();
+            }
+        });
     </script>
 </body>
 </html>
